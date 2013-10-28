@@ -154,6 +154,7 @@ import flash.utils.Timer;
                         if (itemConfig.hasOwnProperty("label")) bitrateItem.label = itemConfig.label;
                         if (itemConfig.hasOwnProperty("sd")) bitrateItem.sd = itemConfig.sd;
                         if (itemConfig.hasOwnProperty("hd")) bitrateItem.hd = itemConfig.hd;
+                        if (itemConfig.hasOwnProperty("isDefault")) bitrateItem.isDefault = itemConfig.isDefault;
                     }
 
                     bitrateItems.push(bitrateItem);
