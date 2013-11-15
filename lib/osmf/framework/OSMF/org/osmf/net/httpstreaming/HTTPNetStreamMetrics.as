@@ -58,6 +58,19 @@ package org.osmf.net.httpstreaming
 		}
 		
 		/**
+		 * The current fragment download count.
+		 **/
+		public function get fragmentCounter():Number
+		{
+			if (httpNetStream.qosInfo != null)
+			{
+				return httpNetStream.qosInfo.fragmentCounter;
+			}
+
+			return 0;
+		}
+		
+		/**
 		 * The bitrate in kbps for the given stream index.
 		 **/
 		public function getBitrateForIndex(index:int):Number
@@ -67,4 +80,4 @@ package org.osmf.net.httpstreaming
 		
 		private var httpNetStream:HTTPNetStream;
 	}
-}
+}	

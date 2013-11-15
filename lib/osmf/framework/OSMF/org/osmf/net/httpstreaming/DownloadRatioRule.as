@@ -22,6 +22,8 @@
 package org.osmf.net.httpstreaming
 {
 	import org.osmf.net.SwitchingRuleBase;
+	import org.osmf.logging.Logger;
+	import org.osmf.logging.Log;
 
 	[ExcludeClass]
 	
@@ -40,11 +42,20 @@ package org.osmf.net.httpstreaming
 		 *  @playerversion AIR 1.5
 		 *  @productversion OSMF 1.0
 		 */		
-		public function DownloadRatioRule(metrics:HTTPNetStreamMetrics, aggressiveUpswitch:Boolean=true)
+		public function DownloadRatioRule
+			( metrics:HTTPNetStreamMetrics
+			, aggressiveUpswitch:Boolean=true
+			, minFragmentsBetweenSwitch:int=2
+			, upshiftSafetyFactor:Number=1.5
+			, cacheThreshold:Number=75.0
+			)
 		{
 			super(metrics);
 			
 			this.aggressiveUpswitch = aggressiveUpswitch;
+			this.minFragmentsBetweenSwitch = minFragmentsBetweenSwitch;
+			this.upshiftSafetyFactor = upshiftSafetyFactor;
+			this.cacheThreshold = cacheThreshold;
 		}
 		
 		/**
@@ -99,7 +110,13 @@ package org.osmf.net.httpstreaming
 			
 			var proposedIndex:int = -1;
 			var switchRatio:Number;
-			
+			var moreDetail:String;
+
+			if (lastSwitchCounter + minFragmentsBetweenSwitch > httpMetrics.fragmentCounter)
+			{
+				return proposedIndex;
+			}
+
 			if (httpMetrics.downloadRatio < 1.0)
 			{
 				// Cases #1 and #2
@@ -112,11 +129,13 @@ package org.osmf.net.httpstreaming
 					{
 						// Case #1, switch to the lowest index.
 						proposedIndex = 0;
+						moreDetail = "downloadRatio was " + httpMetrics.downloadRatio + " < " + switchRatio;
 					}
 					else
 					{
 						// Case #2, down by one.
 						proposedIndex = httpMetrics.currentIndex - 1;
+						moreDetail = "downloadRatio was " + httpMetrics.downloadRatio + " >= " + switchRatio;
 					}
 				}
 			}
@@ -128,7 +147,7 @@ package org.osmf.net.httpstreaming
 				if (httpMetrics.currentIndex < httpMetrics.maxAllowedIndex) 
 				{
 					switchRatio = getSwitchRatio(httpMetrics.currentIndex + 1);
-					if (httpMetrics.downloadRatio < switchRatio)
+					if (httpMetrics.downloadRatio < switchRatio * upshiftSafetyFactor)
 					{
 						// Case #3, don't touch anything, we're where we want to be.
 					}
@@ -137,10 +156,11 @@ package org.osmf.net.httpstreaming
 						// Is the last download ratio suspiciously high (cached data),
 						// or has aggressive upswitch been turned off?
 						// XXX 100.0 s/b constant value
-						if (httpMetrics.downloadRatio > 100.0 || !aggressiveUpswitch)
+						if (httpMetrics.downloadRatio > cacheThreshold || !aggressiveUpswitch)
 						{
 							// Switch up one.
 							proposedIndex = httpMetrics.currentIndex + 1
+							moreDetail = "downloadRatio was " + httpMetrics.downloadRatio + " >= " + switchRatio;
 						}
 						else
 						{
@@ -155,10 +175,20 @@ package org.osmf.net.httpstreaming
 								}
 							}
 							--proposedIndex;
+							moreDetail = "downloadRatio was " + httpMetrics.downloadRatio + " < " + switchRatio;
 						}
 					}
 				}
 			}
+
+			CONFIG::LOGGING
+			{
+        		if (proposedIndex != -1 && proposedIndex != metrics.currentIndex)
+        		{
+					lastSwitchCounter = httpMetrics.fragmentCounter;
+        			debug("getNewIndex() - about to return: " + proposedIndex + ", bitrate=" + httpMetrics.getBitrateForIndex(proposedIndex) + ", detail=" + moreDetail);
+    			} 
+        	}
 			
 			return proposedIndex;
 		}
@@ -173,6 +203,24 @@ package org.osmf.net.httpstreaming
 			return metrics as HTTPNetStreamMetrics;
 		}
 		
+		CONFIG::LOGGING
+		{
+		private function debug(s:String):void
+		{
+			logger.debug(s);
+		}
+		}
+
 		private var aggressiveUpswitch:Boolean = false;
+		private var minFragmentsBetweenSwitch:int = 2;
+		private var upshiftSafetyFactor:Number = 1.5;
+		private var cacheThreshold:Number = 75.0;
+
+		private var lastSwitchCounter:Number = 0;
+
+		CONFIG::LOGGING
+		{
+			private static const logger:Logger = Log.getLogger("org.osmf.net.httpstreaming.DownloadRatioRule");
+		}
 	}
 }

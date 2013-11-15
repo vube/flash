@@ -38,10 +38,11 @@ package org.osmf.net.httpstreaming
 		/**
 		 * Default constructor.
 		 */
-		public function HTTPStreamQoSInfo(fragmentDuration:Number, fragmentSize:Number, downloadDuration:Number)
+		public function HTTPStreamQoSInfo(fragmentDuration:Number, fragmentSize:Number, downloadDuration:Number, fragmentCounter:Number)
 		{
 			_fragmentDuration = fragmentDuration;
 			_fragmentSize = fragmentSize;
+			_fragmentCounter = fragmentCounter;
 			
 			if (!isNaN(fragmentDuration) && !isNaN(downloadDuration) && downloadDuration > 0)
 			{
@@ -73,9 +74,18 @@ package org.osmf.net.httpstreaming
 			return _fragmentSize;
 		}
 		
+		/**
+		 * Gets the fragment size.
+		 */
+		public function get fragmentCounter():Number
+		{
+			return _fragmentCounter;
+		}
+
 		/// Internals
 		private var _downloadRatio:Number = 0;
 		private var _fragmentDuration:Number = 0;
 		private var _fragmentSize:Number = 0;
+		private var _fragmentCounter:Number = 0;
 	}
 }

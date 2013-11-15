@@ -479,7 +479,7 @@ package org.osmf.net.httpstreaming
 						}
 					}
 					
-					_qosInfo = new HTTPStreamQoSInfo(_fragmentDuration, _downloader.downloadBytesCount, _downloader.downloadDuration);
+					_qosInfo = new HTTPStreamQoSInfo(_fragmentDuration, _downloader.downloadBytesCount, _downloader.downloadDuration, ++_fragmentCounter);
 					
 					_dispatcher.dispatchEvent( 
 							new HTTPStreamingEvent(
@@ -809,6 +809,7 @@ package org.osmf.net.httpstreaming
 		
 		private var _fragmentDuration:Number = 0;
 		private var _endFragment:Boolean = false;
+		private var _fragmentCounter:int = 0;
 		
 		private var _indexDownloaderMonitor:EventDispatcher = new EventDispatcher();
 		private var _indexDownloader:HTTPStreamDownloader = new HTTPStreamDownloader();
