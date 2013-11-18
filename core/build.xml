@@ -207,6 +207,9 @@
                 <arg line="-define+=CONFIG::debug,'@{debug}'"/>
                 <arg line="-define+=CONFIG::enableByteRange,'false'"/>
                 <arg line="-define+=CONFIG::FLASH_10_1,'${flash.use.10.1}'"/>
+                <arg line="-define+=CONFIG::LOGGING,'false'"/>
+                <arg line="-define+=CONFIG::enableRtmpMetrics,'false'"/>
+                <arg line="-define+=CONFIG::enableHttpMetrics,'true'"/>
                 <arg line="${compiler.defines}"/>
                 <arg line="-keep-as3-metadata=Value,External"/>
                 <arg line="-source-path ${src-as} ${src-as-commercial} ${classpath} ${plugin-libs}"/>

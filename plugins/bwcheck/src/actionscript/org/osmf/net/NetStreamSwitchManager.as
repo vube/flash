@@ -85,6 +85,7 @@ package org.osmf.net {
             this.switchingRules = switchingRules || new Vector.<SwitchingRuleBase>();
 
             _currentIndex = Math.max(0, Math.min(maxAllowedIndex, dsResource.initialIndex));
+            metrics.currentIndex = _currentIndex
 
             checkRulesTimer = new Timer(_ruleCheckInterval);
             checkRulesTimer.addEventListener(TimerEvent.TIMER, checkRules);
@@ -203,6 +204,7 @@ package org.osmf.net {
         
         public function set currentIndex(index:uint):void {
         	_currentIndex = index;
+            metrics.currentIndex = _currentIndex
         }
 
 

@@ -1,35 +1,31 @@
-package  {
-//import org.flowplayer.rtmp.RTMPStreamProvider;
-//import org.flowplayer.controls.Controls;
-//    import org.flowplayer.shareembed.ShareEmbed;
-//    import org.flowplayer.pseudostreaming.PseudoStreaming;
+package
+{
+	import org.flowplayer.httpstreaming.HttpStreamingProvider;
+	import org.flowplayer.f4m.F4mProvider;
+	import org.flowplayer.bwcheck.BwCheckProvider;
+	import org.flowplayer.controls.Controls;
     
-public class BuiltInConfig {
-//    private var rtmp:org.flowplayer.rtmp.RTMPStreamProvider;
-//    private var controls:org.flowplayer.controls.Controls;
-//    private var share:org.flowplayer.shareembed.ShareEmbed;
-//    private var pseudo:org.flowplayer.pseudostreaming.PseudoStreamProvider;
+	public class BuiltInConfig {
+		private var httpstreaming:org.flowplayer.httpstreaming.HttpStreamingProvider;
+		private var f4m:org.flowplayer.f4m.F4mProvider;
+		private var bwcheck:org.flowplayer.bwcheck.BwCheckProvider;
+		private var controls:org.flowplayer.controls.Controls;
 
-//    [Embed(source="../assets/play.png")]
-//    public var PlayButton:Class;
-//
-//    [Embed(source="../assets/play.png")]
-//    public var Logo:Class;
-
-    public static const config:Object = { 
-       "plugins": {
-//        "pseudo": {
-//              "url": 'org.flowplayer.pseudostreaming.PseudoStreamProvider'
-//        },
-//        "rtmp": {
-//            "url": 'org.flowplayer.rtmp.RTMPStreamProvider'
-//        },
-//        "controls": {
-//            "url": 'org.flowplayer.controls.Controls'
-//		}
-//           viral: {
-//               url: 'org.flowplayer.shareembed.ShareEmbed'
-           }
-       }
-    }; 
+		public static const config:Object = { 
+			"plugins": {
+				"httpstreaming": {
+					"url": 'org.flowplayer.httpstreaming.HttpStreamingProvider'
+				},
+				"f4m": {
+					"url": 'org.flowplayer.f4m.F4mProvider'
+				},
+				"bwcheck": {
+					"url": 'org.flowplayer.bwcheck.BwCheckProvider'
+				},
+				"controls": {
+					"url": 'org.flowplayer.controls.Controls'
+				}
+			}
+		}
+	}; 
 }
