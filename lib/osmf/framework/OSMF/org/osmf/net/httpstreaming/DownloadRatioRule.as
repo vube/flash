@@ -49,6 +49,8 @@ package org.osmf.net.httpstreaming
 			, downshiftSafetyFactor:Number=0.9
 			, upshiftSafetyFactor:Number=2.0
 			, cacheThreshold:Number=75.0
+			, hardSwitchThreshold:Number=1.5
+			, hardSwitchMaximum:int=1
 			)
 		{
 			super(metrics);
@@ -58,6 +60,8 @@ package org.osmf.net.httpstreaming
 			this.downshiftSafetyFactor = downshiftSafetyFactor;
 			this.upshiftSafetyFactor = upshiftSafetyFactor;
 			this.cacheThreshold = cacheThreshold;
+			this.hardSwitchThreshold = hardSwitchThreshold;
+			this.hardSwitchMaximum = hardSwitchMaximum;
 		}
 		
 		/**
@@ -124,16 +128,24 @@ package org.osmf.net.httpstreaming
 				// Cases #1 and #2
 
 				// First check to see if we are even able to switch down.
-				if (httpMetrics.currentIndex > 0)
+				if (httpMetrics.currentIndex > 0
+					&& !(hardSwitchCount >= hardSwitchMaximum && isHardSwitch(httpMetrics.currentIndex - 1)))
 				{
 					proposedIndex = httpMetrics.currentIndex - 1
 
 					// Find the most appropriate stream to downswitch to.
 					while (--proposedIndex >= 0)
 					{
-						switchRatio = getSwitchRatio(proposedIndex)
+						// Do not allow a hard transition if we've already performed one
+						if (hardSwitchCount >= hardSwitchMaximum && isHardSwitch(proposedIndex))
+						{
+							++proposedIndex;
+							break;
+						}
 
-						if (httpMetrics.downloadRatio > switchRatio * downshiftSafetyFactor)
+						switchRatio = getSwitchRatio(proposedIndex, true)
+
+						if (httpMetrics.downloadRatio > switchRatio)
 						{
 							// Found one that's too high.
 							++proposedIndex;
@@ -158,10 +170,11 @@ package org.osmf.net.httpstreaming
 				// Cases #3 and #4
 				
 				// First check to see if we are able to switch up.
-				if (httpMetrics.currentIndex < httpMetrics.maxAllowedIndex) 
+				if (httpMetrics.currentIndex < httpMetrics.maxAllowedIndex
+					&& !(hardSwitchCount >= hardSwitchMaximum && isHardSwitch(httpMetrics.currentIndex + 1))) 
 				{
-					switchRatio = getSwitchRatio(httpMetrics.currentIndex + 1);
-					if (httpMetrics.downloadRatio < switchRatio * upshiftSafetyFactor)
+					switchRatio = getSwitchRatio(httpMetrics.currentIndex + 1, false);
+					if (httpMetrics.downloadRatio < switchRatio)
 					{
 						// Case #3, don't touch anything, we're where we want to be.
 					}
@@ -181,7 +194,12 @@ package org.osmf.net.httpstreaming
 							// Find the most appropriate stream to upswitch to.
 							while (++proposedIndex < httpMetrics.maxAllowedIndex + 1)
 							{
-								switchRatio = getSwitchRatio(proposedIndex)
+								// Do not allow a hard transition if we've already performed one
+								if (hardSwitchCount >= hardSwitchMaximum && isHardSwitch(proposedIndex))
+								{
+									break;
+								}
+								switchRatio = getSwitchRatio(proposedIndex, false)
 								if (httpMetrics.downloadRatio < switchRatio)
 								{
 									// Found one that's too high.
@@ -199,17 +217,53 @@ package org.osmf.net.httpstreaming
 			{
         		if (proposedIndex != -1 && proposedIndex != metrics.currentIndex)
         		{
-					lastSwitchCounter = httpMetrics.fragmentCounter;
-        			debug("getNewIndex() - about to return: " + proposedIndex + ", bitrate=" + httpMetrics.getBitrateForIndex(proposedIndex) + ", detail=" + moreDetail);
+        			if (isHardSwitch(proposedIndex))
+        			{
+        				// Only allow a hard transition if we've had two fragments in a row demand it
+        				if (hardSwitchLimiter == httpMetrics.fragmentCounter - 1)
+        				{
+	        				++hardSwitchCount;
+	        				hardSwitchLimiter = 0;
+        				}
+        				else
+        				{
+        					proposedIndex = -1;
+	        				hardSwitchLimiter = httpMetrics.fragmentCounter;
+        				}
+        			}
+
+        			if (proposedIndex != -1)
+        			{
+						lastSwitchCounter = httpMetrics.fragmentCounter;
+        				debug("getNewIndex() - about to return: " + proposedIndex + ", bitrate=" + httpMetrics.getBitrateForIndex(proposedIndex) + ", detail=" + moreDetail);
+        			}
     			} 
         	}
 			
 			return proposedIndex;
 		}
 		
-		private function getSwitchRatio(index:int):Number
+		private function isHardSwitch(index:int):Boolean
 		{
-			return httpMetrics.getBitrateForIndex(index) / httpMetrics.getBitrateForIndex(metrics.currentIndex);
+			if((Number(index) > hardSwitchThreshold && metrics.currentIndex < hardSwitchThreshold) ||
+				(Number(index) < hardSwitchThreshold && metrics.currentIndex > hardSwitchThreshold))
+			{
+				return true
+			}
+
+			return false
+		}
+
+		private function getSwitchRatio(index:int, down:Boolean):Number
+		{
+			var factor:Number = down ? downshiftSafetyFactor : upshiftSafetyFactor;
+			// Double up on the safety factor if the transition is hard
+			if (isHardSwitch(index))
+			{
+				factor *= factor / 1
+			}
+
+			return httpMetrics.getBitrateForIndex(index) / httpMetrics.getBitrateForIndex(metrics.currentIndex) * factor;
 		}
 		
 		private function get httpMetrics():HTTPNetStreamMetrics
@@ -230,8 +284,12 @@ package org.osmf.net.httpstreaming
 		private var downshiftSafetyFactor:Number = 0.9;
 		private var upshiftSafetyFactor:Number = 2.0;
 		private var cacheThreshold:Number = 75.0;
+		private var hardSwitchThreshold:Number = 1.5;
+		private var hardSwitchMaximum:int = 1;
 
 		private var lastSwitchCounter:Number = 0;
+		private var hardSwitchLimiter:Number = 0;
+		private var hardSwitchCount:int = 0;
 
 		CONFIG::LOGGING
 		{
