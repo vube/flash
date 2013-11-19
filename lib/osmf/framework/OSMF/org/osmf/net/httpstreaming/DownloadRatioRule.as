@@ -117,6 +117,7 @@ package org.osmf.net.httpstreaming
 			var proposedIndex:int = -1;
 			var switchRatio:Number;
 			var moreDetail:String;
+			var aBitMore:String = "";
 
 			if (lastSwitchCounter + minFragmentsBetweenSwitch > httpMetrics.fragmentCounter)
 			{
@@ -140,6 +141,7 @@ package org.osmf.net.httpstreaming
 						if (hardSwitchCount >= hardSwitchMaximum && isHardSwitch(proposedIndex))
 						{
 							++proposedIndex;
+							aBitMore = " and > a hard switch";
 							break;
 						}
 
@@ -149,6 +151,7 @@ package org.osmf.net.httpstreaming
 						{
 							// Found one that's too high.
 							++proposedIndex;
+							aBitMore = " and > " + switchRatio;
 							break;
 						}
 					}
@@ -158,7 +161,7 @@ package org.osmf.net.httpstreaming
 						proposedIndex = 0;
 					}
 
-					moreDetail = "downloadRatio was " + httpMetrics.downloadRatio + " > " + switchRatio;
+					moreDetail = "downloadRatio was " + httpMetrics.downloadRatio + " <= " + getSwitchRatio(proposedIndex, true) + aBitMore;
 				}
 			}
 			else if (httpMetrics.downloadRatio > cacheThreshold)
@@ -197,17 +200,19 @@ package org.osmf.net.httpstreaming
 								// Do not allow a hard transition if we've already performed one
 								if (hardSwitchCount >= hardSwitchMaximum && isHardSwitch(proposedIndex))
 								{
+									aBitMore = " and < a hard switch";
 									break;
 								}
 								switchRatio = getSwitchRatio(proposedIndex, false)
 								if (httpMetrics.downloadRatio < switchRatio)
 								{
 									// Found one that's too high.
+									aBitMore = " and < " + switchRatio;
 									break;
 								}
 							}
 							--proposedIndex;
-							moreDetail = "downloadRatio was " + httpMetrics.downloadRatio + " < " + switchRatio;
+							moreDetail = "downloadRatio was " + httpMetrics.downloadRatio + " >= " + getSwitchRatio(proposedIndex, false) + aBitMore;
 						}
 					}
 				}
@@ -235,7 +240,10 @@ package org.osmf.net.httpstreaming
         			if (proposedIndex != -1)
         			{
 						lastSwitchCounter = httpMetrics.fragmentCounter;
-        				debug("getNewIndex() - about to return: " + proposedIndex + ", bitrate=" + httpMetrics.getBitrateForIndex(proposedIndex) + ", detail=" + moreDetail);
+        				debug("getNewIndex() - about to return: " + proposedIndex + " from " + metrics.currentIndex
+        					+ ", hard=" + isHardSwitch(proposedIndex)
+        					+ ", bitrate=" + httpMetrics.getBitrateForIndex(proposedIndex)
+        					+ ", detail=" + moreDetail);
         			}
     			} 
         	}
