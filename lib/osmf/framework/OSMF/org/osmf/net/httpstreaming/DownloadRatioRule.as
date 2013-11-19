@@ -46,7 +46,8 @@ package org.osmf.net.httpstreaming
 			( metrics:HTTPNetStreamMetrics
 			, aggressiveUpswitch:Boolean=true
 			, minFragmentsBetweenSwitch:int=2
-			, upshiftSafetyFactor:Number=1.5
+			, downshiftSafetyFactor:Number=0.9
+			, upshiftSafetyFactor:Number=2.0
 			, cacheThreshold:Number=75.0
 			)
 		{
@@ -54,6 +55,7 @@ package org.osmf.net.httpstreaming
 			
 			this.aggressiveUpswitch = aggressiveUpswitch;
 			this.minFragmentsBetweenSwitch = minFragmentsBetweenSwitch;
+			this.downshiftSafetyFactor = downshiftSafetyFactor;
 			this.upshiftSafetyFactor = upshiftSafetyFactor;
 			this.cacheThreshold = cacheThreshold;
 		}
@@ -120,24 +122,36 @@ package org.osmf.net.httpstreaming
 			if (httpMetrics.downloadRatio < 1.0)
 			{
 				// Cases #1 and #2
-				
+
 				// First check to see if we are even able to switch down.
 				if (httpMetrics.currentIndex > 0)
 				{
-					switchRatio = getSwitchRatio(httpMetrics.currentIndex - 1);
-					if (httpMetrics.downloadRatio < switchRatio)
+					proposedIndex = httpMetrics.currentIndex - 1
+
+					// Find the most appropriate stream to downswitch to.
+					while (--proposedIndex >= 0)
 					{
-						// Case #1, switch to the lowest index.
+						switchRatio = getSwitchRatio(proposedIndex)
+
+						if (httpMetrics.downloadRatio > switchRatio * downshiftSafetyFactor)
+						{
+							// Found one that's too high.
+							++proposedIndex;
+							break;
+						}
+					}
+
+					if (proposedIndex < 0)
+					{
 						proposedIndex = 0;
-						moreDetail = "downloadRatio was " + httpMetrics.downloadRatio + " < " + switchRatio;
 					}
-					else
-					{
-						// Case #2, down by one.
-						proposedIndex = httpMetrics.currentIndex - 1;
-						moreDetail = "downloadRatio was " + httpMetrics.downloadRatio + " >= " + switchRatio;
-					}
+
+					moreDetail = "downloadRatio was " + httpMetrics.downloadRatio + " > " + switchRatio;
 				}
+			}
+			else if (httpMetrics.downloadRatio > cacheThreshold)
+			{
+				// Cache, don't touch anything
 			}
 			else
 			{
@@ -213,7 +227,8 @@ package org.osmf.net.httpstreaming
 
 		private var aggressiveUpswitch:Boolean = false;
 		private var minFragmentsBetweenSwitch:int = 2;
-		private var upshiftSafetyFactor:Number = 1.5;
+		private var downshiftSafetyFactor:Number = 0.9;
+		private var upshiftSafetyFactor:Number = 2.0;
 		private var cacheThreshold:Number = 75.0;
 
 		private var lastSwitchCounter:Number = 0;
