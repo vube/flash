@@ -47,7 +47,8 @@ package org.osmf.net.httpstreaming
 			, aggressiveUpswitch:Boolean=true
 			, minFragmentsBetweenSwitch:int=2
 			, downshiftSafetyFactor:Number=0.9
-			, upshiftSafetyFactor:Number=2.0
+			, upshiftSafetyFactor:Number=2.25
+			, upshiftScaleFactor:Number=0.25
 			, cacheThreshold:Number=75.0
 			, hardSwitchThreshold:Number=1.5
 			, hardSwitchMaximum:int=1
@@ -59,6 +60,7 @@ package org.osmf.net.httpstreaming
 			this.minFragmentsBetweenSwitch = minFragmentsBetweenSwitch;
 			this.downshiftSafetyFactor = downshiftSafetyFactor;
 			this.upshiftSafetyFactor = upshiftSafetyFactor;
+			this.upshiftScaleFactor = upshiftScaleFactor;
 			this.cacheThreshold = cacheThreshold;
 			this.hardSwitchThreshold = hardSwitchThreshold;
 			this.hardSwitchMaximum = hardSwitchMaximum;
@@ -239,6 +241,11 @@ package org.osmf.net.httpstreaming
 
         			if (proposedIndex != -1)
         			{
+        				if (proposedIndex > metrics.currentIndex)
+        				{
+        					upshiftSafetyFactor += upshiftScaleFactor
+        				}
+
 						lastSwitchCounter = httpMetrics.fragmentCounter;
         				debug("getNewIndex() - about to return: " + proposedIndex + " from " + metrics.currentIndex
         					+ ", hard=" + isHardSwitch(proposedIndex)
@@ -290,7 +297,8 @@ package org.osmf.net.httpstreaming
 		private var aggressiveUpswitch:Boolean = false;
 		private var minFragmentsBetweenSwitch:int = 2;
 		private var downshiftSafetyFactor:Number = 0.9;
-		private var upshiftSafetyFactor:Number = 2.0;
+		private var upshiftSafetyFactor:Number = 2.25;
+		private var upshiftScaleFactor:Number = 0.25;
 		private var cacheThreshold:Number = 75.0;
 		private var hardSwitchThreshold:Number = 1.5;
 		private var hardSwitchMaximum:int = 1;

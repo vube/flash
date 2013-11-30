@@ -207,7 +207,7 @@
                 <arg line="-define+=CONFIG::debug,'@{debug}'"/>
                 <arg line="-define+=CONFIG::enableByteRange,'false'"/>
                 <arg line="-define+=CONFIG::FLASH_10_1,'${flash.use.10.1}'"/>
-                <arg line="-define+=CONFIG::LOGGING,'false'"/>
+                <arg line="-define+=CONFIG::LOGGING,'true'"/>
                 <arg line="-define+=CONFIG::enableRtmpMetrics,'false'"/>
                 <arg line="-define+=CONFIG::enableHttpMetrics,'true'"/>
                 <arg line="${compiler.defines}"/>
