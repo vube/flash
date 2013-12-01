@@ -17,6 +17,7 @@ package org.flowplayer.f4m.config {
         private var _dvrBufferTime:int = 4;
         private var _liveBufferTime:int = 2;
         private var _dynamicBufferTime:int = 4;
+        private var _dynamicAdditionalBufferTime:int = 4;
         private var _dvrDynamicBufferTime:int = 4;
         private var _liveDynamicBufferTime:int = 4;
         private var _includeApplicationInstance:Boolean = false;
@@ -59,6 +60,16 @@ package org.flowplayer.f4m.config {
         public function get dynamicBufferTime():int
         {
             return _dynamicBufferTime;
+        }
+
+        public function set dynamicAdditionalBufferTime(value:int):void
+        {
+            _dynamicAdditionalBufferTime = value;
+        }
+
+        public function get dynamicAdditionalBufferTime():int
+        {
+            return _dynamicAdditionalBufferTime;
         }
 
         public function set dvrDynamicBufferTime(value:int):void

@@ -50,6 +50,7 @@ import flash.utils.Timer;
         import org.osmf.net.DynamicStreamingItem;
         import org.osmf.net.StreamingURLResource;
         import org.osmf.net.StreamType;
+        import org.osmf.utils.OSMFSettings;
 
 
         public class F4mProvider implements ClipURLResolver, ErrorHandler, Plugin {
@@ -176,6 +177,7 @@ import flash.utils.Timer;
                             _clip.bufferLength = _config.liveDynamicBufferTime;
                             break;
                         default:
+                            OSMFSettings.hdsAdditionalBufferTime = _config.dynamicAdditionalBufferTime;
                             _clip.bufferLength = _config.dynamicBufferTime;
                             break;
                     }

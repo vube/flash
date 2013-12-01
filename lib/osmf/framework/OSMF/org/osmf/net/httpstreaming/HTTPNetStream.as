@@ -246,9 +246,22 @@ package org.osmf.net.httpstreaming
 		 */
 		override public function set bufferTime(value:Number):void
 		{
+			CONFIG::LOGGING
+			{
+				var old:Number = super.bufferTime
+			}
+
 			super.bufferTime = value;
 			_desiredBufferTime_Min = Math.max(OSMFSettings.hdsMinimumBufferTime, value);
 			_desiredBufferTime_Max = _desiredBufferTime_Min + OSMFSettings.hdsAdditionalBufferTime;
+
+			CONFIG::LOGGING
+			{
+				logger.debug("bufferTime changed from " + old + " to " + super.bufferTime
+					+ "; _desiredBufferTime_Min=" + _desiredBufferTime_Min
+					+ ", _desiredBufferTime_Max=" + _desiredBufferTime_Max
+					);
+			}
 		}
 		
 		/**
